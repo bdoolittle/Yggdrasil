@@ -70,7 +70,12 @@ function get_addable_spec(name::AbstractString, version::VersionNumber)
 
     # Next, determine the tree hash from the registry
     tree_hashes = Base.SHA1[]
-    for path in Pkg.Operations.registered_paths(ctx.env, uuid)
+    @static if VERSION >= v"1.4"
+        paths = Pkg.Operations.registered_paths(ctx, uuid)
+    else
+        paths = Pkg.Operations.registered_paths(ctx.env, uuid)
+    end
+    for path in paths
         vers = Pkg.Operations.load_versions(path; include_yanked = true)
         tree_hash = get(vers, version, nothing)
         tree_hash !== nothing && push!(tree_hashes, tree_hash)
